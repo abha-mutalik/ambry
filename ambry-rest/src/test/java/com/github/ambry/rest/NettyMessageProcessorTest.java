@@ -511,10 +511,6 @@ public class NettyMessageProcessorTest {
     compareContent(receivedContent, Collections.singletonList(content));
   }
 
-  /**
-   * Tests that a failed 100-Continue response write records one client abort, termination duration, and whole-blob
-   * size sample even though the interim response channel has already completed.
-   */
   @Test
   public void testResponseTtfbIgnoresDelayedContinue() throws Exception {
     MetricRegistry registry = new MetricRegistry();
@@ -565,6 +561,10 @@ public class NettyMessageProcessorTest {
     }
   }
 
+  /**
+   * Tests that a failed 100-Continue response write records one client abort, termination duration, and whole-blob
+   * size sample even though the interim response channel has already completed.
+   */
   @Test
   public void testContinueResponseWriteFailureRecordsClientAbortOnce() {
     MetricRegistry metricRegistry = new MetricRegistry();

@@ -19,6 +19,7 @@ import com.github.ambry.frontend.ContainerMetrics;
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -55,6 +56,27 @@ public class RestRequestMetricsTrackerTest {
         assertArrayEquals(new long[]{0}, metrics.successfulResponseNioTimeToFirstByteInMs.getSnapshot().getValues());
       }
     }
+
+    RestRequestMetrics metrics = new RestRequestMetrics(getClass(), "MeasuredDuration", new MetricRegistry());
+    RestRequestMetricsTracker tracker = new RestRequestMetricsTracker();
+    tracker.injectMetrics(metrics);
+    tracker.nioMetricsTracker.markRequestReceived();
+    Field requestReceivedTime = RestRequestMetricsTracker.NioMetricsTracker.class.getDeclaredField(
+        "requestReceivedTimeInNanos");
+    requestReceivedTime.setAccessible(true);
+    long startTimeInNanos = System.nanoTime() - TimeUnit.MILLISECONDS.toNanos(250);
+    requestReceivedTime.setLong(tracker.nioMetricsTracker, startTimeInNanos);
+    long lowerBoundInMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTimeInNanos);
+    tracker.markResponseHeaders(200);
+    long upperBoundInMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTimeInNanos);
+    tracker.recordMetrics();
+    assertEquals(1, metrics.successfulResponseNioTimeToFirstByteInMs.getCount());
+    assertEquals(1, metrics.successfulResponseTtfbSampleRate.getCount());
+    assertEquals(0, metrics.responseTtfbMissingCount.getCount());
+    long measuredDurationInMs = metrics.successfulResponseNioTimeToFirstByteInMs.getSnapshot().getMax();
+    assertTrue("Measured TTFB should be positive", measuredDurationInMs > 0);
+    assertTrue("Measured TTFB should not precede the lower millisecond bound", measuredDurationInMs >= lowerBoundInMs);
+    assertTrue("Measured TTFB should not exceed the upper millisecond bound", measuredDurationInMs <= upperBoundInMs);
   }
 
   @Test

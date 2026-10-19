@@ -33,7 +33,7 @@ jobs:
   #   - MySQL-using modules grouped to share a single MySQL setup; this includes
   #     ambry-router because NonBlockingRouterTest needs the AmbryRepairRequests DB
   #   - Azurite-using modules grouped to share a single Azurite install
-  #   - Utility modules (utils, commons, prioritization, quota, tools, filesystem)
+  #   - Utility modules (api, utils, commons, prioritization, quota, tools, filesystem)
   #     bundled in one runner to amortize VM provisioning across small modules
   # ============================================================
 
@@ -115,7 +115,7 @@ jobs:
         with: { fetch-depth: 100, fetch-tags: true }
       - uses: ./.github/actions/run-unit-test
         with:
-          modules: ambry-utils ambry-commons ambry-prioritization ambry-quota ambry-tools ambry-filesystem
+          modules: ambry-api ambry-utils ambry-commons ambry-prioritization ambry-quota ambry-tools ambry-filesystem
           job-id-suffix: utility-modules
 
   # NOTE: ambry-file-transfer is intentionally omitted — its tests are @Ignored
