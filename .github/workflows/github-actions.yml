@@ -199,6 +199,18 @@ jobs:
           arguments: --scan --warning-mode=summary intTest -x :ambry-server:intTest codeCoverageReport
           gradle-version: wrapper
 
+      - name: Upload failed frontend integration test reports
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-int-test-failure-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ambry-frontend/build/test-results/intTest/
+            ambry-frontend/build/reports/tests/intTest/
+            ambry-frontend/logs/publicAccessLog.out
+          retention-days: 7
+          if-no-files-found: warn
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         env:
